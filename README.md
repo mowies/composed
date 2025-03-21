@@ -1,5 +1,9 @@
 # composed.sh
 
+This is a fork of the original composed.sh with some tweaks to support a multi-node setup with per-node folders.
+
+# Original Readme
+
 Simplest "GitOps" for Docker Compose. This script automates the process of updating and deploying services using Docker Compose. It pulls the latest changes from a Git repository, checks for updates in `docker-compose.yml` or `docker-compose.yaml` files, and restarts the affected services. Additionally, it sends notifications to a Discord channel if configured.
 
 ## Prerequisites
