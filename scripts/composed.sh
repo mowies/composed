@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Configuration
-DEPLOYMENT_ENV=":apple: Production"      # Deployment environment (used only in Discord message)
-DEPLOYMENTS_DIR="/my-deployment-dir"     # Directory with Docker Compose files (best solution /deployment/<service_name>/docker-compose.yml)
-DISCORD_WEBHOOK_URL=""                   # Discord Webhook URL (leave empty if you don't want to use it)
-DOCKER_COMPOSE="/usr/bin/docker compose" # Docker Compose binary (try with '-' if it doesn't work)
-GIT="/usr/bin/git"                       # Git binary
-LOCK_FILE="/tmp/.composed.lock"          # Lock file location (prevents errors on long tasks)
+DEPLOYMENT_ENV=":apple: Production"                                                   # Description of the deployment environment (used in Discord messages)
+REPO_DIR="${REPO_DIR:-/my-deployment-dir}"                          # Repository root directory
+DEPLOYMENTS_DIR="${DEPLOYMENTS_DIR:-/my-deployment-dir/$HOSTNAME/}" # Directory with Docker Compose files (best solution /deployment/<service_name>/docker-compose.yml)
+DISCORD_WEBHOOK_URL=""                                              # Discord Webhook URL (leave empty if you don't want to use it)
+DOCKER_COMPOSE="/usr/bin/docker compose"                            # Docker Compose binary (try with '-' if it doesn't work)
+GIT="/usr/bin/git"                                                  # Git binary
+LOCK_FILE="/tmp/.composed.lock"                                     # Lock file location (prevents errors on long tasks)
 
 # ================================================
 
@@ -33,7 +34,7 @@ get_image_versions() {
 
 # Function to check if any container is running
 is_container_running() {
-  if [[ -n "$($DOCKER_COMPOSE --log-level ERROR ps -q)" ]]; then
+  if [[ -n "$($DOCKER_COMPOSE ps -q)" ]]; then
     return 0
   else
     return 1
@@ -41,7 +42,7 @@ is_container_running() {
 }
 
 # Navigate to deployment directory
-cd $DEPLOYMENTS_DIR || exit 1
+cd $REPO_DIR/$DEPLOYMENTS_DIR || exit 1
 
 # Create lock file if it doesn't exist
 if [ -e "$LOCK_FILE" ]; then
@@ -68,9 +69,9 @@ current_commit_sha=$($GIT rev-parse HEAD)
 log_message "New commit hash: $current_commit_sha"
 
 # Get changed docker-compose files
-changed_files=$($GIT diff --name-only $previous_commit_sha $current_commit_sha | grep -E "docker-compose.ya?ml")
+changed_files=$($GIT diff --name-only $previous_commit_sha $current_commit_sha | grep -E "${DEPLOYMENTS_DIR}.*/docker-compose.ya?ml")
 if [ -z "$changed_files" ]; then
-  log_message "No docker-compose files have changed."
+  log_message "No docker-compose files for node $HOSTNAME have changed."
   exit 0
 fi
 
@@ -79,8 +80,8 @@ IFS=$'\n' read -rd '' -a changed_files_array <<<"$changed_files"
 updated_services=()
 
 for file in "${changed_files_array[@]}"; do
-  service_dir=$(dirname "$file")
-  cd "$DEPLOYMENTS_DIR/$service_dir" || exit 1
+  service_dir=$(dirname ${file##"${DEPLOYMENTS_DIR}"})
+  cd "$REPO_DIR/${DEPLOYMENTS_DIR}${service_dir}" || exit 1
   service_name=$(basename "$service_dir")
 
   log_message "Reloading service: $service_name"
