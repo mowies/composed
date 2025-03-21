@@ -16,8 +16,9 @@ Simplest "GitOps" for Docker Compose. This script automates the process of updat
 
 Edit the script and configure the following variables:
 
+- `REPO_DIR`: Directory
 - `DEPLOYMENT_ENV`: Description of the deployment environment (used in Discord messages).
-- `DEPLOYMENTS_DIR`: Directory containing Docker Compose files.
+- `DEPLOYMENTS_DIR`: Directory containing service folders that contain Docker Compose files.
 - `DISCORD_WEBHOOK_URL`: Discord Webhook URL (leave empty if you don't want to use it).
 
 ## Directory Structure
@@ -28,7 +29,7 @@ Example structure:
 ```
 /deployments
   ├── composed.sh
-  └── services
+  └── <node-name>
       ├── service1
       │   └── docker-compose.yml
       ├── service2
@@ -39,7 +40,7 @@ Example structure:
 
 ## Git Repository Setup
 
-The `/deployments` directory should be a Git repository. This repository contains the Docker Compose files for each service. **Each service needs its own folder for the script to work properly (as shown in the example above).** To work with the script properly, initialize a Git repository in this directory and commit your changes.
+The `/deployments` directory should be a Git repository. This repository contains the Docker Compose files for each node and service. **Each node and service needs its own folder for the script to work properly (as shown in the example above).** To work with the script properly, initialize a Git repository in this directory and commit your changes.
 
 Example workflow:
 1. Initialize the Git repository:
